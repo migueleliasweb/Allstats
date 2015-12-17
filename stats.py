@@ -1,15 +1,8 @@
-from numpy.core.tests.test_numerictypes import read_values_nested
 import platform
 from multiprocessing import cpu_count
 import json
-import csv
-import copy
-from datetime import datetime
-from os import path, statvfs
+from os import statvfs
 from math import pow
-
-# Network
-# HD
 
 
 def host_stats():
