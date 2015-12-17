@@ -3,10 +3,13 @@ from multiprocessing import cpu_count
 import json
 from os import statvfs
 from math import pow
+from docker import Client
+from uptime import uptime
 
 
 def host_stats():
     return {
+        'uptime': int(uptime()),
         'linux': ''.join(platform.linux_distribution()),
         'kernel': platform.uname()[2],
         'cpu': {
@@ -15,7 +18,8 @@ def host_stats():
         },
         'memory': memory_stats(),
         'network': network_stats(),
-        'disk': disk_stats()
+        'disk': disk_stats(),
+        'docker': docker_stats()
     }
 
 
@@ -110,6 +114,27 @@ def disk_stats():
             'free': int((stats.f_bsize * stats.f_bfree) / pow(1024, 2))
         }
     }
+
+    return data
+
+
+def docker_stats():
+    docker_client = Client(base_url='unix://var/run/docker.sock', version='1.20')
+
+    data = {
+        'version': docker_client.version(),
+        'images': docker_client.images(),
+        'containers': []
+    }
+
+    containers = docker_client.containers()
+
+    for container in containers:
+        _container_details = docker_client.inspect_container(container=container['Id'])
+        _image_details = docker_client.inspect_image(image=_container_details['Image'])
+
+        container['Image'] = _image_details
+        data['containers'].append(container)
 
     return data
 
