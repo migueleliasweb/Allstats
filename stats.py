@@ -5,6 +5,7 @@ from os import statvfs
 from math import pow
 from docker import Client
 from uptime import uptime
+import utils
 
 
 def host_stats():
@@ -134,9 +135,20 @@ def docker_stats():
         _image_details = docker_client.inspect_image(image=_container_details['Image'])
 
         container['Image'] = _image_details
+
+        last_log = docker_client.logs(
+            container=container['Id'],
+            stdout=True,
+            stderr=True,
+            tail=1,
+            timestamps=True
+        )
+
+        container['last_log'] = str(last_log, 'UTF-8').strip().split(' ')[0]
+
         data['containers'].append(container)
 
-    return data
+    return utils.dict_keys_to_lower(data)
 
 
 if __name__ == "__main__":
